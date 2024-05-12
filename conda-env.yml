@@ -1,0 +1,15 @@
+name: mixytrades
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - flask
+  - sqlalchemy
+  - mysql-connector-python
+  - pandas
+  - numpy
+  - python-dotenv
+  - requests
+  - pytest # if you plan to add tests later
+  - pip:
+    - openai  # This is the OpenAI client library
