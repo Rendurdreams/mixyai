@@ -5,7 +5,7 @@ from datetime import datetime
 from config import CMC_KEY
 
 # Configuration
-DATABASE_PATH = '/Users/jakeb/Projects/mixyai/app/db/coindata.db'
+DATABASE_PATH = '/Users/jakeb/Projects/mixyai/db/coindata.db'
 CMC_API_KEY = CMC_KEY
 
 def fetch_crypto_data(api_key, ucids):
@@ -30,13 +30,23 @@ def fetch_crypto_data(api_key, ucids):
 def update_database(crypto_data, connection):
     cursor = connection.cursor()
     try:
-        query = """INSERT OR REPLACE INTO Coins (
-                    ucid, name, symbol, slug, num_market_pairs, date_added, tags,
-                    max_supply, circulating_supply, total_supply, is_active,
-                    infinite_supply, platform, cmc_rank, is_fiat, price,
-                    price_change_1h, price_change_24h, price_change_7d,
-                    volume_24h) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        # Insert or replace in the Coins table
+        query_coins = """INSERT OR REPLACE INTO Coins (
+                            ucid, name, symbol, slug, num_market_pairs, date_added, tags,
+                            max_supply, circulating_supply, total_supply, is_active,
+                            infinite_supply, platform, cmc_rank, is_fiat, price,
+                            price_change_1h, price_change_24h, price_change_7d,
+                            volume_24h) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        
+        # Insert into the CoinHistory table
+        query_history = """INSERT INTO CoinHistory (
+                            ucid, name, symbol, slug, num_market_pairs, date_added, tags,
+                            max_supply, circulating_supply, total_supply, is_active,
+                            infinite_supply, platform, cmc_rank, is_fiat, price,
+                            price_change_1h, price_change_24h, price_change_7d,
+                            volume_24h) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         
         for key, data in crypto_data.items():
             tags = json.dumps(data.get('tags')) if data.get('tags') is not None else None
@@ -50,7 +60,9 @@ def update_database(crypto_data, connection):
                 data['quote']['USD']['percent_change_1h'], data['quote']['USD']['percent_change_24h'],
                 data['quote']['USD']['percent_change_7d'], data['quote']['USD']['volume_24h']
             )
-            cursor.execute(query, values)
+            cursor.execute(query_coins, values)
+            cursor.execute(query_history, values)
+        
         connection.commit()
         print("Successfully updated cryptocurrency data in the database.")
     except Exception as e:
@@ -97,7 +109,10 @@ def fetch_latest_global_metrics(api_key):
         return None
 
 def main():
-    ucids = ['1', '5426', '24835', '2354']  # Example UCIDs
+    # Read UCIDs from a file
+    with open('ucids.txt', 'r') as file:
+        ucids = [line.strip() for line in file if line.strip()]
+
     connection = sqlite3.connect(DATABASE_PATH)
 
     crypto_data = fetch_crypto_data(CMC_API_KEY, ucids)
