@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 DATABASE_PATH = '/Users/jakeb/Projects/mixyai/db/coindata.db'
 API_KEY = OPENAI_KEY
-client = OpenAI(api_key=API_KEY)  # Set up the OpenAI API key
+client = OpenAI(api_key=API_KEY)
 
 # Function to fetch data from the database
 def fetch_data():
